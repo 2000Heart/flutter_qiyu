@@ -40,6 +40,14 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  * FlutterQiyuPlugin
  */
 public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
+    public static void config(Context context, String appKey) {
+        Unicorn.config(
+            context.getApplicationContext(),
+            appKey,
+            ysfOptions(context),
+            new GlideImageLoader(context)
+        );
+    }
     private static final String CHANNEL_NAME = "flutter_qiyu";
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
@@ -100,7 +108,7 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
 
     private void registerApp(String appKey, String appName) {
         Unicorn.initSdk();
-        Unicorn.config(context, appKey, ysfOptions(), new GlideImageLoader(context));
+        config(context, appKey);
         Unicorn.addUnreadCountChangeListener(unreadCountChangeListener, true);
     }
 
@@ -288,7 +296,7 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
 
-    private YSFOptions ysfOptions() {
+    public static YSFOptions ysfOptions(Context context) {
         YSFOptions options = new YSFOptions();
         options.statusBarNotificationConfig = new StatusBarNotificationConfig();
         options.onBotEventListener = new OnBotEventListener() {
@@ -301,11 +309,11 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
         };
         // 如果项目中使用了 Glide 可以通过设置 gifImageLoader 去加载 gif 图片
         options.gifImageLoader = new GlideGifImagerLoader(context);
-        options.sdkEvents = configSdkEvent();
+        options.sdkEvents = configSdkEvent(context.getApplicationContext());
         return options;
     }
 
-    private SDKEvents configSdkEvent() {
+    public static SDKEvents configSdkEvent(Context context) {
         SDKEvents sdkEvents = new SDKEvents();
         sdkEvents.eventProcessFactory = new EventProcessFactory() {
             @Override
