@@ -7,8 +7,11 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.qiyukf.nimlib.sdk.NIMClient;
 import com.qiyukf.nimlib.sdk.RequestCallback;
 import com.qiyukf.nimlib.sdk.StatusBarNotificationConfig;
+import com.qiyukf.nimlib.sdk.msg.constant.MsgTypeEnum;
+import com.qiyukf.nimlib.sdk.ysf.YsfService;
 import com.qiyukf.unicorn.api.ConsultSource;
 import com.qiyukf.unicorn.api.OnBotEventListener;
 import com.qiyukf.unicorn.api.ProductDetail;
@@ -17,6 +20,9 @@ import com.qiyukf.unicorn.api.Unicorn;
 import com.qiyukf.unicorn.api.UnreadCountChangeListener;
 import com.qiyukf.unicorn.api.YSFOptions;
 import com.qiyukf.unicorn.api.YSFUserInfo;
+import com.qiyukf.unicorn.api.event.EventProcessFactory;
+import com.qiyukf.unicorn.api.event.SDKEvents;
+import com.qiyukf.unicorn.api.event.UnicornEventBase;
 import com.qiyukf.unicorn.api.lifecycle.SessionLifeCycleOptions;
 
 import java.util.HashMap;
@@ -35,30 +41,11 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  */
 public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
     private static final String CHANNEL_NAME = "flutter_qiyu";
-
-    public static void config(Context context, String appKey) {
-        YSFOptions ysfOptions = new YSFOptions();
-        ysfOptions.statusBarNotificationConfig = new StatusBarNotificationConfig();
-        ysfOptions.onBotEventListener = new OnBotEventListener() {
-            @Override
-            public boolean onUrlClick(Context context, String url) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                context.startActivity(intent);
-                return true;
-            }
-        };
-        // 如果项目中使用了 Glide 可以通过设置 gifImageLoader 去加载 gif 图片
-        ysfOptions.gifImageLoader = new GlideGifImagerLoader(context);
-
-        Unicorn.config(context.getApplicationContext(), appKey, ysfOptions, new GlideImageLoader(context));
-    }
-
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-
     private Context context;
     private YSFOptions ysfOptions;
     private UnreadCountChangeListener unreadCountChangeListener = new UnreadCountChangeListener() {
@@ -90,7 +77,6 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
         } else if (call.method.equals("registerApp")) {
             String appKey = call.argument("appKey");
             String appName = call.argument("appName");
-
             this.registerApp(appKey, appName);
             result.success(true);
         } else if (call.method.equals("openServiceWindow")) {
@@ -114,7 +100,7 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
 
     private void registerApp(String appKey, String appName) {
         Unicorn.initSdk();
-        config(context, appKey);
+        Unicorn.config(context, appKey, ysfOptions(), new GlideImageLoader(context));
         Unicorn.addUnreadCountChangeListener(unreadCountChangeListener, true);
     }
 
@@ -299,5 +285,52 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
     private void teardownChannel() {
         this.channel.setMethodCallHandler(null);
         this.channel = null;
+    }
+
+
+    private YSFOptions ysfOptions() {
+        YSFOptions options = new YSFOptions();
+        options.statusBarNotificationConfig = new StatusBarNotificationConfig();
+        options.onBotEventListener = new OnBotEventListener() {
+            @Override
+            public boolean onUrlClick(Context context, String url) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                context.startActivity(intent);
+                return true;
+            }
+        };
+        // 如果项目中使用了 Glide 可以通过设置 gifImageLoader 去加载 gif 图片
+        options.gifImageLoader = new GlideGifImagerLoader(context);
+        options.sdkEvents = configSdkEvent();
+        return options;
+    }
+
+    private SDKEvents configSdkEvent() {
+        SDKEvents sdkEvents = new SDKEvents();
+        sdkEvents.eventProcessFactory = new EventProcessFactory() {
+            @Override
+            public UnicornEventBase eventOf(int eventType) {
+                //0:请求客服事件
+                //1:连接客服结果事件
+                //2:注册自定义消息解析器的事件
+                //3: 退出客服界面事件(fragment 的集成方式不会回调该事件)
+                //4: 点击头像事件
+                //5: 申请权限事件
+                Log.i("YsfDemoApplication", "eventType:" + eventType);
+                if (eventType == 0) {
+                    // return new DemoRequestStaffEvent();
+                } else if (eventType == 1) {
+                    // return new DemoConnectionResultEvent();
+                } else if (eventType == 2) {
+//                    NIMClient.getService(YsfService.class).registerAttachmentParser(MsgTypeEnum.appCustom.getValue(), DemoMsgParser.getInstance());
+                } else if (eventType == 3) {
+//                    return new DemoLeaveActivityEvent();
+                } else if (eventType == 5) {
+                    return new RequestPermissionEvent(context);
+                }
+                return null;
+            }
+        };
+        return sdkEvents;
     }
 }
