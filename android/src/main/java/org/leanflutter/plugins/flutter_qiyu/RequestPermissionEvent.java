@@ -9,7 +9,6 @@ import android.text.TextUtils;
 import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.qiyukf.unicorn.api.event.EventCallback;
 import com.qiyukf.unicorn.api.event.UnicornEventBase;
 import com.qiyukf.unicorn.api.event.entry.RequestPermissionEventEntry;
@@ -105,7 +104,7 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
             return;
         }
         String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
-        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(context).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
+        AlertDialog dialog = new AlertDialog.Builder(context).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
             .setPositiveButton("确定", (dialog1, which) -> {
                 //如果想用户授予权限，需要调用 onProcessEventSuccess 告诉 SDK 处理成功
                 callback.onProcessEventSuccess(requestPermissionEventEntry);
@@ -117,7 +116,7 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
                     //或者用户自己处理不授予权限的提醒,就不要调用这个方法了
                     callback.onInterceptEvent();
                 }
-            });
+            }).create();
         dialog.show();
     }
 
