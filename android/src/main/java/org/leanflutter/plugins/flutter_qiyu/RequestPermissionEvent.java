@@ -24,11 +24,9 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
     private final Map<String, String> h5MessageHandlerMap = new HashMap<>();
 
     private Context mApplicationContext;
-    private EventChannel.EventSink mEventSink;
 
-    public RequestPermissionEvent(Context context, EventChannel.EventSink eventSink) {
+    public RequestPermissionEvent(Context context) {
         mApplicationContext = context;
-        mEventSink = eventSink;
         h5MessageHandlerMap.put("android.permission.RECORD_AUDIO", "麦克风");
         h5MessageHandlerMap.put("android.permission.CAMERA", "相机");
         h5MessageHandlerMap.put("android.permission.READ_EXTERNAL_STORAGE", "存储");

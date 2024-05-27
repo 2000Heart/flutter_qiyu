@@ -40,7 +40,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * FlutterQiyuPlugin
  */
-public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
+public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler{
     public static void config(Context context, String appKey) {
         Unicorn.config(
             context.getApplicationContext(),
@@ -55,8 +55,6 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, Even
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-    private static EventChannel.EventSink mEventSink;
-    private EventChannel mEventChannel;
     private Context context;
     private YSFOptions ysfOptions;
     private UnreadCountChangeListener unreadCountChangeListener = new UnreadCountChangeListener() {
@@ -74,8 +72,6 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, Even
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         this.setupChannel(flutterPluginBinding.getBinaryMessenger(), flutterPluginBinding.getApplicationContext());
-        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), CHANNEL_NAME);
-        mEventChannel.setStreamHandler(this);
     }
 
     @Override
@@ -339,7 +335,7 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, Even
                 } else if (eventType == 3) {
 //                    return new DemoLeaveActivityEvent();
                 } else if (eventType == 5) {
-                    return new RequestPermissionEvent(context,mEventSink);
+                    return new RequestPermissionEvent(context);
                 }
                 return null;
             }
@@ -347,13 +343,4 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, Even
         return sdkEvents;
     }
 
-    @Override
-    public void onListen(Object o, EventChannel.EventSink eventSink) {
-        mEventSink = eventSink;
-    }
-
-    @Override
-    public void onCancel(Object o) {
-
-    }
 }
