@@ -103,7 +103,6 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
             Toast.makeText(mApplicationContext, "适配Android13,没有通知栏权限,需要给通知栏权限", Toast.LENGTH_SHORT).show();
             return;
         }
-        mEventSink.success(requestPermissionEventEntry.getScenesType());
         String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
         AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AlertDialog_AppCompat_Light)).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
             .setPositiveButton("确定", (dialog1, which) -> {
