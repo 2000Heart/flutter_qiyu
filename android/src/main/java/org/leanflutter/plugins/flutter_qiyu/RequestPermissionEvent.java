@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.text.TextUtils;
+import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
 import com.qiyukf.unicorn.api.event.EventCallback;
@@ -17,13 +18,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import io.flutter.plugin.common.EventChannel;
+
 public class RequestPermissionEvent implements UnicornEventBase<RequestPermissionEventEntry> {
     private final Map<String, String> h5MessageHandlerMap = new HashMap<>();
 
     private Context mApplicationContext;
+    private EventChannel.EventSink mEventSink;
 
-    public RequestPermissionEvent(Context context) {
+    public RequestPermissionEvent(Context context, EventChannel.EventSink eventSink) {
         mApplicationContext = context;
+        mEventSink = eventSink;
         h5MessageHandlerMap.put("android.permission.RECORD_AUDIO", "麦克风");
         h5MessageHandlerMap.put("android.permission.CAMERA", "相机");
         h5MessageHandlerMap.put("android.permission.READ_EXTERNAL_STORAGE", "存储");
@@ -100,8 +105,9 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
             Toast.makeText(mApplicationContext, "适配Android13,没有通知栏权限,需要给通知栏权限", Toast.LENGTH_SHORT).show();
             return;
         }
+        mEventSink.success(requestPermissionEventEntry.getScenesType());
         String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
-        AlertDialog dialog = new AlertDialog.Builder(context).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
+        AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.AlertDialog_AppCompat_Light)).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
             .setPositiveButton("确定", (dialog1, which) -> {
                 //如果想用户授予权限，需要调用 onProcessEventSuccess 告诉 SDK 处理成功
                 callback.onProcessEventSuccess(requestPermissionEventEntry);
@@ -125,22 +131,6 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
      */
     @Override
     public boolean onDenyEvent(Context context, RequestPermissionEventEntry requestPermissionEventEntry) {
-        String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
-        AlertDialog dialog = new AlertDialog.Builder(context).setMessage("您没有：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "是否进行其他设置")
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //用户自定义拒绝后的权限处理
-                        Toast.makeText(context, "我自己处理没有的权限情况", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(context, "我什么也没有做", Toast.LENGTH_SHORT).show();
-                    }
-                }).create();
-        dialog.show();
         return false;
     }
 }

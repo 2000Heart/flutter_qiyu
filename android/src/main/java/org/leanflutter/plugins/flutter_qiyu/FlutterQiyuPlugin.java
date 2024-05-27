@@ -30,6 +30,7 @@ import java.util.Map;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -39,7 +40,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * FlutterQiyuPlugin
  */
-public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
+public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
     public static void config(Context context, String appKey) {
         Unicorn.config(
             context.getApplicationContext(),
@@ -54,6 +55,8 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
+    private static EventChannel.EventSink mEventSink;
+    private EventChannel mEventChannel;
     private Context context;
     private YSFOptions ysfOptions;
     private UnreadCountChangeListener unreadCountChangeListener = new UnreadCountChangeListener() {
@@ -71,6 +74,8 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         this.setupChannel(flutterPluginBinding.getBinaryMessenger(), flutterPluginBinding.getApplicationContext());
+        mEventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), CHANNEL_NAME);
+        mEventChannel.setStreamHandler(this);
     }
 
     @Override
@@ -334,11 +339,21 @@ public class FlutterQiyuPlugin implements FlutterPlugin, MethodCallHandler {
                 } else if (eventType == 3) {
 //                    return new DemoLeaveActivityEvent();
                 } else if (eventType == 5) {
-                    return new RequestPermissionEvent(context);
+                    return new RequestPermissionEvent(context,mEventSink);
                 }
                 return null;
             }
         };
         return sdkEvents;
+    }
+
+    @Override
+    public void onListen(Object o, EventChannel.EventSink eventSink) {
+        mEventSink = eventSink;
+    }
+
+    @Override
+    public void onCancel(Object o) {
+
     }
 }
