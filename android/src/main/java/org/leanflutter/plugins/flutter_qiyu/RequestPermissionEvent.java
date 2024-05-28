@@ -13,6 +13,7 @@ import com.qiyukf.unicorn.api.event.EventCallback;
 import com.qiyukf.unicorn.api.event.UnicornEventBase;
 import com.qiyukf.unicorn.api.event.entry.RequestPermissionEventEntry;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,19 @@ import io.flutter.plugin.common.EventChannel;
 
 public class RequestPermissionEvent implements UnicornEventBase<RequestPermissionEventEntry> {
     private final Map<String, String> h5MessageHandlerMap = new HashMap<>();
+    private final String[] eventList = {
+            "从本地选择媒体文件",
+            "拍摄视频场景",
+            "保存图片到本地",
+            "保存视频到本地",
+            "选择本地视频",
+            "选择本地文件",
+            "选择本地图片",
+            "拍照",
+            "录音",
+            "视频客服",
+            "通知栏权限"
+    };
 
     private Context mApplicationContext;
 
@@ -104,7 +118,7 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
             return;
         }
         String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
-        AlertDialog dialog = new AlertDialog.Builder(context,5).setMessage("为保证您" + type + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
+        AlertDialog dialog = new AlertDialog.Builder(context,5).setMessage("为保证您" + eventList[type] + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
             .setPositiveButton("确定", (dialog1, which) -> {
                 //如果想用户授予权限，需要调用 onProcessEventSuccess 告诉 SDK 处理成功
                 callback.onProcessEventSuccess(requestPermissionEventEntry);
