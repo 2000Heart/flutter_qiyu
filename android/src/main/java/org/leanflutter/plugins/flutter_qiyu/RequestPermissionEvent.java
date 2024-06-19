@@ -118,7 +118,7 @@ public class RequestPermissionEvent implements UnicornEventBase<RequestPermissio
             return;
         }
         String permissionName = transToPermissionStr(requestPermissionEventEntry.getPermissionList());
-        AlertDialog dialog = new AlertDialog.Builder(context,5).seto.setMessage("为保证您" + eventList[type] + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
+        AlertDialog dialog = new AlertDialog.Builder(context,5).setMessage("为保证您" + eventList[type] + "功能的正常使用，" + "需要使用您的：" + (TextUtils.isEmpty(permissionName) ? "相关" : permissionName) + "权限，\n" + "拒绝或取消不影响使用其他服务")
             .setPositiveButton("确定", (dialog1, which) -> {
                 //如果想用户授予权限，需要调用 onProcessEventSuccess 告诉 SDK 处理成功
                 callback.onProcessEventSuccess(requestPermissionEventEntry);
